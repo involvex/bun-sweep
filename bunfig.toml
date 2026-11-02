@@ -1,0 +1,17 @@
+[lint]
+typeAware = true                                     # also run the rules that need types
+plugins = ["@typescript-eslint/eslint-plugin"]
+nativePluginRules = ["@typescript-eslint", "import"]
+
+[lint.rules]
+# "no-console" = "warn"
+"eqeqeq" = ["error", "smart"]
+no-unused-vars = "error"
+"@typescript-eslint/no-explicit-any" = "error"
+
+[fmt]
+# printWidth = 100
+# semi = false
+sortImports = true
+sortPackageJson = true
+allowUnsupported = true

@@ -1,0 +1,31 @@
+{
+	"name": "@involvex/bun-sweep",
+	"private": true,
+	"author": "involvex",
+	"bin": {
+		"bun-sweep": "src/index.ts"
+	},
+	"type": "module",
+	"module": "src/index.ts",
+	"scripts": {
+		"build": "bun build src/index.ts --outdir dist --target bun",
+		"dev": "bun --hot src/index.ts",
+		"typecheck": "bun check",
+		"prebuild": "bun run format && bun run lint:fix && bun run typecheck",
+		"lint": "bun lint src",
+		"lint:fix": "bun lint src --fix",
+		"format": "bun fmt"
+	},
+	"dependencies": {
+		"@involvex/del-cli": "^7.0.1",
+		"has-flag": "^5.0.1"
+	},
+	"devDependencies": {
+		"@involvex/prettier-config": "^0.0.6",
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^7"
+	},
+	"prettier": "@involvex/prettier-config"
+}
