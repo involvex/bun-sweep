@@ -1,7 +1,7 @@
 [lint]
-typeAware = true                                     # also run the rules that need types
+typeAware = true                                                 # also run the rules that need types
 plugins = ["@typescript-eslint/eslint-plugin"]
-nativePluginRules = ["@typescript-eslint", "import"]
+nativePluginRules = ["@typescript-eslint", "import", "prettier"]
 
 [lint.rules]
 # "no-console" = "warn"

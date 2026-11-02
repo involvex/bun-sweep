@@ -9,11 +9,10 @@
 	"module": "src/index.ts",
 	"scripts": {
 		"build": "bun build src/index.ts --outdir dist --target bun",
-		"dev": "bun --hot src/index.ts",
+		"dev": "bun src/index.ts",
 		"typecheck": "bun check",
-		"prebuild": "bun run format && bun run lint:fix && bun run typecheck",
+		"prebuild": "bun run format && bun run lint --fix && bun run typecheck",
 		"lint": "bun lint src",
-		"lint:fix": "bun lint src --fix",
 		"format": "bun fmt"
 	},
 	"dependencies": {

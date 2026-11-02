@@ -13,11 +13,35 @@ const commands = {
 		await deleteAsync(['dist', 'build', 'out', 'coverage', '.cache'])
 	},
 	'clean:node_modules': async () => {
-		if (existsSync(join(process.cwd(), 'node_modules'))) {
-			console.log('Removing node_modules...')
-			await $`del-cli node_modules`
+		if (hasflag('--path') || hasflag('-p')) {
+			const pathIndex = args.indexOf('--path') + 1
+			const path = args[pathIndex]
+			if (path) {
+				if (hasflag('--recursive') || hasflag('-r')) {
+					if (existsSync(join(process.cwd(), path))) {
+						console.log(`Removing ${path} recursively...`)
+						await $`del-cli ${path} --recursive`
+					} else {
+						console.log(`No ${path} found.`)
+					}
+				} else {
+					if (existsSync(join(process.cwd(), path))) {
+						console.log(`Removing ${path}...`)
+						await $`del-cli ${path}`
+					} else {
+						console.log(`No ${path} found.`)
+					}
+				}
+			} else {
+				console.log('Please provide a path after --path')
+			}
 		} else {
-			console.log('No node_modules found.')
+			if (existsSync(join(process.cwd(), 'node_modules'))) {
+				console.log('Removing node_modules...')
+				await $`del-cli node_modules`
+			} else {
+				console.log('No node_modules found.')
+			}
 		}
 	},
 }
