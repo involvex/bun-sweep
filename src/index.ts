@@ -1,68 +1,116 @@
 #!/usr/bin/env bun
-import {existsSync} from 'fs'
+import {existsSync, readdirSync} from 'fs'
 import {join} from 'path'
 
 import {$} from 'bun'
-import {deleteAsync} from 'del'
 import hasflag from 'has-flag'
+
 const args = process.argv.slice(2)
-const command = args[0]
-// const commandArgs = args.slice(1)
-const commands = {
-	clean: async () => {
-		await deleteAsync(['dist', 'build', 'out', 'coverage', '.cache'])
-	},
-	'clean:node_modules': async () => {
-		if (hasflag('--path') || hasflag('-p')) {
-			const pathIndex = args.indexOf('--path') + 1
-			const path = args[pathIndex]
-			if (path) {
-				if (hasflag('--recursive') || hasflag('-r')) {
-					if (existsSync(join(process.cwd(), path))) {
-						console.log(`Removing ${path} recursively...`)
-						await $`del-cli ${path} --recursive`
-					} else {
-						console.log(`No ${path} found.`)
-					}
-				} else {
-					if (existsSync(join(process.cwd(), path))) {
-						console.log(`Removing ${path}...`)
-						await $`del-cli ${path}`
-					} else {
-						console.log(`No ${path} found.`)
-					}
-				}
-			} else {
-				console.log('Please provide a path after --path')
-			}
-		} else {
-			if (existsSync(join(process.cwd(), 'node_modules'))) {
-				console.log('Removing node_modules...')
-				await $`del-cli node_modules`
-			} else {
-				console.log('No node_modules found.')
-			}
-		}
-	},
-}
-if (
-	hasflag('help') ||
-	hasflag('h') ||
-	hasflag('-h') ||
-	hasflag('--help') ||
-	!command
-) {
-	console.log('Available commands:')
-	for (const cmd in commands) {
-		console.log(`  ${cmd}`)
+
+// Parse flags
+const help =
+	hasflag('help') || hasflag('h') || hasflag('-h') || hasflag('--help')
+const dryRun = hasflag('--dry-run')
+const recursive = hasflag('--recursive') || hasflag('-r')
+const buildOutputs = hasflag('--build-outputs')
+
+// Positional path argument (first non-flag argument)
+const pathArg = args.find(a => !a.startsWith('-'))
+
+const targetDir = pathArg ? join(process.cwd(), pathArg) : process.cwd()
+
+const actionLabel = dryRun ? 'Would clean' : 'Cleaning'
+
+const deletePaths = async (paths: string[], label: string) => {
+	if (dryRun) {
+		console.log(`${label}: ${paths.join(', ')}`)
+		return
 	}
+	console.log(`${label}: ${paths.join(', ')}`)
+	await $`del-cli ${paths}`
+}
+
+const cleanBuildOutputs = async (dir: string) => {
+	const folders = ['dist', 'out', 'dist-electron']
+	const existing: string[] = []
+	for (const folder of folders) {
+		const fullPath = join(dir, folder)
+		if (existsSync(fullPath)) {
+			existing.push(fullPath)
+		}
+	}
+	if (existing.length === 0) {
+		console.log(`No build output folders found in ${dir}`)
+		return
+	}
+	await deletePaths(existing, `${actionLabel} build outputs in ${dir}`)
+}
+
+const cleanNodeModules = async (dir: string) => {
+	const nodeModules = join(dir, 'node_modules')
+	if (existsSync(nodeModules)) {
+		await deletePaths([nodeModules], `${actionLabel} node_modules in ${dir}`)
+	} else {
+		console.log(`No node_modules found in ${dir}`)
+	}
+}
+
+const processDir = async (dir: string) => {
+	if (buildOutputs) {
+		await cleanBuildOutputs(dir)
+	} else {
+		await cleanNodeModules(dir)
+	}
+
+	if (recursive) {
+		try {
+			const entries = readdirSync(dir, {withFileTypes: true})
+			for (const entry of entries) {
+				if (entry.isDirectory() && entry.name !== 'node_modules') {
+					await processDir(join(dir, entry.name))
+				}
+			}
+		} catch (e) {
+			console.error(`Failed to read directory ${dir}: ${String(e)}`)
+		}
+	}
+}
+
+if (help) {
+	console.log('Usage: bun-sweep [options] [path]')
+	console.log('')
+	console.log('Options:')
+	console.log(
+		'  -r, --recursive    Recursively clean node_modules in subdirectories',
+	)
+	console.log(
+		'  --dry-run          Preview what would be deleted without deleting',
+	)
+	console.log(
+		'  --build-outputs    Clear dist, out, dist-electron instead of node_modules',
+	)
+	console.log('  --help, -h         Show this help message')
+	console.log('')
+	console.log('Examples:')
+	console.log(
+		'  bun-sweep                    Clean node_modules in current directory',
+	)
+	console.log('  bun-sweep --dry-run          Preview node_modules cleanup')
+	console.log(
+		'  bun-sweep D:/repos/          Clean node_modules in specific directory',
+	)
+	console.log(
+		'  bun-sweep -r D:/repos/       Recursively clean node_modules in all subdirs',
+	)
+	console.log(
+		'  bun-sweep --build-outputs    Clean dist, out, dist-electron folders',
+	)
 	process.exit(0)
 }
-if (command && command in commands) {
-	await commands[command as keyof typeof commands]()
-} else {
-	console.log(`Unknown command: ${command ?? 'undefined'}`)
+
+if (!existsSync(targetDir)) {
+	console.log(`Path not found: ${targetDir}`)
 	process.exit(1)
 }
 
-console.log('Hello via Bun!')
+await processDir(targetDir)
