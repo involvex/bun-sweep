@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import {existsSync, readdirSync} from 'fs'
-import {join} from 'path'
+import {isAbsolute, join} from 'path'
 
 import {$} from 'bun'
 import hasflag from 'has-flag'
@@ -17,7 +17,11 @@ const buildOutputs = hasflag('--build-outputs')
 // Positional path argument (first non-flag argument)
 const pathArg = args.find(a => !a.startsWith('-'))
 
-const targetDir = pathArg ? join(process.cwd(), pathArg) : process.cwd()
+const targetDir = pathArg
+	? isAbsolute(pathArg)
+		? pathArg
+		: join(process.cwd(), pathArg)
+	: process.cwd()
 
 const actionLabel = dryRun ? 'Would clean' : 'Cleaning'
 
