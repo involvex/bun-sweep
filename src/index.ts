@@ -16,8 +16,9 @@ const dryRun = hasflag('--dry-run')
 const recursive = hasflag('--recursive') || hasflag('-r')
 const buildOutputs = hasflag('--build-outputs')
 const version = hasflag('--version') || hasflag('-v')
-
+const repo = pkg.repository?.url || ''
 if (version) {
+	console.log('Repository: ', repo)
 	console.log('@involvex/bun-sweep version: ', pkg.version)
 	process.exit(0)
 }

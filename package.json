@@ -3,6 +3,10 @@
 	"version": "0.0.1",
 	"private": true,
 	"author": "involvex",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/involvex/bun-sweep.git"
+	},
 	"bin": {
 		"bun-sweep": "src/index.ts"
 	},
@@ -14,7 +18,8 @@
 		"typecheck": "bun check",
 		"prebuild": "bun run format && bun run lint --fix && bun run typecheck",
 		"lint": "bun lint src",
-		"format": "bun fmt"
+		"format": "bun fmt",
+		"prepublishOnly": "bun run build"
 	},
 	"dependencies": {
 		"@involvex/del-cli": "^7.0.1",
