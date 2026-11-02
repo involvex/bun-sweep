@@ -1,7 +1,6 @@
 {
 	"name": "@involvex/bun-sweep",
 	"version": "0.0.1",
-	"private": true,
 	"author": "involvex",
 	"repository": {
 		"type": "git",
