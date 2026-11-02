@@ -5,6 +5,8 @@ import {isAbsolute, join} from 'path'
 import {$} from 'bun'
 import hasflag from 'has-flag'
 
+import pkg from '../package.json' with {type: 'json'}
+
 const args = process.argv.slice(2)
 
 // Parse flags
@@ -13,7 +15,12 @@ const help =
 const dryRun = hasflag('--dry-run')
 const recursive = hasflag('--recursive') || hasflag('-r')
 const buildOutputs = hasflag('--build-outputs')
+const version = hasflag('--version') || hasflag('-v')
 
+if (version) {
+	console.log('@involvex/bun-sweep version: ', pkg.version)
+	process.exit(0)
+}
 // Positional path argument (first non-flag argument)
 const pathArg = args.find(a => !a.startsWith('-'))
 
